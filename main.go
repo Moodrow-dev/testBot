@@ -5,8 +5,6 @@ import (
 	"log"
 )
 
-const BOT_TOKEN = "7904777920:AAHYe1_LxZmpYp6M5k5Xlll5P_1uPv34gQo"
-
 func main() {
 	db, err := sql.Open("sqlite3", "./bot.db")
 
@@ -23,6 +21,9 @@ func main() {
 	changeNumDenum(&bh, db)
 	changeWeek(&bh, db)
 	changeTitle(&bh, db)
+	setUsers(&bh, db)
+	ping(&bh, db)
+	addNewPeople(&bh, db)
 
 	_ = bh.Start()
 }

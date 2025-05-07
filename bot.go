@@ -7,12 +7,13 @@ import (
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	"log"
+	"os"
 	"slices"
 	"strings"
 )
 
 func createBotAndPoll() (telego.Bot, <-chan telego.Update, th.BotHandler, error) {
-	bot, err := telego.NewBot(BOT_TOKEN, telego.WithDefaultDebugLogger())
+	bot, err := telego.NewBot(os.Getenv("BOT_TOKEN"), telego.WithDefaultDebugLogger())
 	if err != nil {
 		log.Fatal(err)
 		return telego.Bot{}, nil, th.BotHandler{}, err

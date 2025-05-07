@@ -24,6 +24,7 @@ func main() {
 	setUsers(&bh, db)
 	ping(&bh, db)
 	addNewPeople(&bh, db)
+	delLeftPeople(&bh, db)
 
 	_ = bh.Start()
 }

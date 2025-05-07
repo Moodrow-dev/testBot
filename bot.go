@@ -29,10 +29,13 @@ func chatInit(bh *th.BotHandler, db *sql.DB) Chat {
 	var chat Chat
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
+		fromID := update.Message.From.ID
+		if !isAdmin(int(fromID), ctx, chatID) {
+			return nil
+		}
 		if !fromChat(chatID) {
 			return nil
 		}
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Положи мамину карточку на место"})
 		var err error
 		chat, err = read(int(chatID.ID), db)
 		if err != nil {
@@ -49,12 +52,13 @@ func chatInit(bh *th.BotHandler, db *sql.DB) Chat {
 func changeNumDenum(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		if !fromChat(chatID) {
+		fromID := update.Message.From.ID
+		if !isAdmin(int(fromID), ctx, chatID) {
 			return nil
 		}
 		chat, err := read(int(chatID.ID), db)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		args := strings.Split(update.Message.Text, " ")
 		num := args[1]
@@ -70,12 +74,13 @@ func changeNumDenum(bh *th.BotHandler, db *sql.DB) {
 func setUsers(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		if !fromChat(chatID) {
+		fromID := update.Message.From.ID
+		if !isAdmin(int(fromID), ctx, chatID) {
 			return nil
 		}
 		chat, err := read(int(chatID.ID), db)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		people := strings.Split(update.Message.Text, " ")[1:]
 		flag := true
@@ -99,12 +104,13 @@ func setUsers(bh *th.BotHandler, db *sql.DB) {
 func changeWeek(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		if !fromChat(chatID) {
+		fromID := update.Message.From.ID
+		if !isAdmin(int(fromID), ctx, chatID) {
 			return nil
 		}
 		chat, err := read(int(chatID.ID), db)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		oldTitle := update.Message.Chat.Title
 		numTitle := fmt.Sprintf("[%v] %v", chat.Den, chat.Title)
@@ -121,12 +127,13 @@ func changeWeek(bh *th.BotHandler, db *sql.DB) {
 func changeTitle(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		if !fromChat(chatID) {
+		fromID := update.Message.From.ID
+		if !isAdmin(int(fromID), ctx, chatID) {
 			return nil
 		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := getChatByID(chatID, db, ctx)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		title := strings.Split(update.Message.Text, " ")[1]
 		chat.Title = title
@@ -139,13 +146,6 @@ func changeTitle(bh *th.BotHandler, db *sql.DB) {
 
 }
 
-func changeChatTitle(title string, chatID telego.ChatID, bh *th.BotHandler, ctx *th.Context) {
-	err := ctx.Bot().SetChatTitle(ctx, &telego.SetChatTitleParams{ChatID: chatID, Title: title})
-	if err != nil {
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "У меня нет прав на смену названия данного чата"})
-	}
-}
-
 func ping(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		msgID := update.Message.MessageID
@@ -156,12 +156,9 @@ func ping(bh *th.BotHandler, db *sql.DB) {
 			pingMsg = update.Message.Text
 		}
 		chatID := update.Message.Chat.ChatID()
-		if !fromChat(chatID) {
-			return nil
-		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := getChatByID(chatID, db, ctx)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: msgID, Quote: pingMsg}, ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Text: "||" + strings.ReplaceAll(strings.Join(chat.Users, ", "), "_", "\\_") + "||"})
 
@@ -169,16 +166,13 @@ func ping(bh *th.BotHandler, db *sql.DB) {
 	}, th.CommandEqual("ping"))
 }
 
+// Пассивные функции \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 func addNewPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-
-		if !fromChat(chatID) {
-			return nil
-		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := getChatByID(chatID, db, ctx)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		if len(update.Message.NewChatMembers) == 0 {
 			return nil
@@ -199,13 +193,9 @@ func addNewPeople(bh *th.BotHandler, db *sql.DB) {
 func delLeftPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-
-		if !fromChat(chatID) {
-			return nil
-		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := getChatByID(chatID, db, ctx)
 		if err != nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+			return nil
 		}
 		if update.Message.LeftChatMember == nil {
 			return nil
@@ -221,23 +211,4 @@ func delLeftPeople(bh *th.BotHandler, db *sql.DB) {
 		}
 		return nil
 	}, th.AnyMessage())
-}
-
-func fromChat(id telego.ChatID) bool {
-	if id.ID < 0 {
-		return true
-	}
-	return false
-}
-
-func isAdmin(userId int, bot telego.Bot, ctx *th.Context, id telego.ChatID) bool {
-	idList := []int{}
-	admins, _ := bot.GetChatAdministrators(ctx, &telego.GetChatAdministratorsParams{ChatID: id})
-	for _, admin := range admins {
-		idList = append(idList, int(admin.MemberUser().ID))
-	}
-	if slices.Contains(idList, userId) {
-		return true
-	}
-	return false
 }

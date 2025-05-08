@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
 	"log"
@@ -13,6 +14,10 @@ import (
 )
 
 func createBotAndPoll() (telego.Bot, <-chan telego.Update, th.BotHandler, error) {
+	err := godotenv.Load("token.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	bot, err := telego.NewBot(os.Getenv("BOT_TOKEN"), telego.WithDefaultDebugLogger())
 	if err != nil {
 		log.Fatal(err)

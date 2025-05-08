@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 type Chat struct {
-	ID        int      `bson:"id"`
+	ID        int64    `bson:"id"`
 	MainTopic int      `bson:"main_topic"`
 	Num       string   `bson:"num"`
 	Den       string   `bson:"den"`
@@ -11,7 +11,7 @@ type Chat struct {
 	Users     []string `bson:"users"`
 }
 
-func createChat(id int, title string) Chat {
+func createChat(id int64, title string) Chat {
 	chat := Chat{}
 	chat.ID = id
 	chat.MainTopic = 1

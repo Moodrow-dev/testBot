@@ -22,12 +22,12 @@ func fromChat(id telego.ChatID) bool {
 	return false
 }
 
-func isAdmin(userId int, ctx *th.Context, id telego.ChatID) bool {
-	idList := []int{}
+func isAdmin(userId int64, ctx *th.Context, id telego.ChatID) bool {
+	idList := []int64{}
 	bot := ctx.Bot()
 	admins, _ := bot.GetChatAdministrators(ctx, &telego.GetChatAdministratorsParams{ChatID: id})
 	for _, admin := range admins {
-		idList = append(idList, int(admin.MemberUser().ID))
+		idList = append(idList, admin.MemberUser().ID)
 	}
 	if slices.Contains(idList, userId) {
 		return true
@@ -40,7 +40,7 @@ func getChatByID(chatID telego.ChatID, db *sql.DB, ctx *th.Context) (Chat, error
 	if !fromChat(chatID) {
 		return Chat{}, errors.New("Не из чата!")
 	}
-	chat, err := read(int(chatID.ID), db)
+	chat, err := read(chatID.ID, db)
 	if err != nil {
 		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
 	}

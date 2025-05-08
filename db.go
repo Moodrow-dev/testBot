@@ -25,12 +25,12 @@ func write(chat Chat, db *sql.DB) error {
 	return nil
 }
 
-func read(id int, db *sql.DB) (Chat, error) {
+func read(id int64, db *sql.DB) (Chat, error) {
 	// В запросе нужно добавить WHERE для фильтрации по id
 	row := db.QueryRow("SELECT id, main_topic, num, den, title, users FROM chats WHERE id = ?", id)
 
 	var (
-		dbId      int
+		dbId      int64
 		mainTopic int
 		num       string
 		den       string
@@ -66,7 +66,7 @@ func read(id int, db *sql.DB) (Chat, error) {
 	return chat, nil
 }
 
-func deleteChat(id int, db *sql.DB) error {
+func deleteChat(id int64, db *sql.DB) error {
 	result, err := db.Exec("DELETE FROM chats WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("failed to delete chat: %v", err)
@@ -86,7 +86,7 @@ func deleteChat(id int, db *sql.DB) error {
 
 func createTable(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS chats (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id INTEGER PRIMARY KEY,
 		main_topic INTEGER,
 		num STRING,
 		den STRING,

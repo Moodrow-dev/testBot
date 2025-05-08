@@ -36,17 +36,17 @@ func chatInit(bh *th.BotHandler, db *sql.DB) Chat {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(int(fromID), ctx, chatID) {
+		if !isAdmin(fromID, ctx, chatID) {
 			return nil
 		}
 		if !fromChat(chatID) {
 			return nil
 		}
 		var err error
-		chat, err = read(int(chatID.ID), db)
+		chat, err = read(chatID.ID, db)
 		if err != nil {
 			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: err.Error()})
-			chat = createChat(int(chatID.ID), update.Message.Chat.Title)
+			chat = createChat(chatID.ID, update.Message.Chat.Title)
 			write(chat, db)
 		}
 		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Чат успешно инициализирован"})
@@ -59,10 +59,10 @@ func changeNumDenum(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(int(fromID), ctx, chatID) {
+		if !isAdmin(fromID, ctx, chatID) {
 			return nil
 		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := read(chatID.ID, db)
 		if err != nil {
 			return nil
 		}
@@ -81,10 +81,10 @@ func setUsers(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(int(fromID), ctx, chatID) {
+		if !isAdmin(fromID, ctx, chatID) {
 			return nil
 		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := read(chatID.ID, db)
 		if err != nil {
 			return nil
 		}
@@ -111,10 +111,10 @@ func changeWeek(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(int(fromID), ctx, chatID) {
+		if !isAdmin(fromID, ctx, chatID) {
 			return nil
 		}
-		chat, err := read(int(chatID.ID), db)
+		chat, err := read(chatID.ID, db)
 		if err != nil {
 			return nil
 		}
@@ -134,7 +134,7 @@ func changeTitle(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(int(fromID), ctx, chatID) {
+		if !isAdmin(fromID, ctx, chatID) {
 			return nil
 		}
 		chat, err := getChatByID(chatID, db, ctx)

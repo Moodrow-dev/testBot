@@ -17,7 +17,7 @@ func write(chat Chat, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	result, exec := db.Exec("INSERT INTO chats (id, main_topic, num, den, title, users) VALUES (?, ?, ?, ?, ?, ?)", chat.ID, chat.MainTopic, chat.Num, chat.Den, chat.Title, usersJson)
+	result, exec := db.Exec("INSERT INTO chats (id, main_topic, num, den, title, users) VALUES (?, ?, ?, ?, ?, ?)", chat.ID, chat.InfoThread, chat.Num, chat.Den, chat.Title, usersJson)
 	if exec != nil {
 		return exec
 	}
@@ -55,12 +55,12 @@ func read(id int64, db *sql.DB) (Chat, error) {
 
 	// Создаем и возвращаем объект Chat
 	chat := Chat{
-		ID:        dbId,
-		MainTopic: mainTopic,
-		Num:       num,
-		Den:       den,
-		Title:     title,
-		Users:     usersSlice,
+		ID:         dbId,
+		InfoThread: mainTopic,
+		Num:        num,
+		Den:        den,
+		Title:      title,
+		Users:      usersSlice,
 	}
 
 	return chat, nil

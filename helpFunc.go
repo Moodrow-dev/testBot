@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/mymmrac/telego"
 	"slices"
 )
@@ -47,4 +48,37 @@ func getChatByID(chatID telego.ChatID, db *sql.DB, bot *telego.Bot) (Chat, error
 		bot.SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
 	}
 	return chat, nil
+}
+
+func changeWeekMain(chatID telego.ChatID, bot *telego.Bot, db *sql.DB) error {
+	ctx := context.Background()
+	chat, err := read(chatID.ID, db)
+	if err != nil {
+		return err
+	}
+
+	// Получаем текущее название чата
+	chatInfo, err := bot.GetChat(ctx, &telego.GetChatParams{ChatID: chatID})
+	if err != nil {
+		return err
+	}
+	oldTitle := chatInfo.Title
+
+	numTitle := fmt.Sprintf("[%v] %v", chat.Den, chat.Title)
+	denTitle := fmt.Sprintf("[%v] %v", chat.Num, chat.Title)
+
+	// Определяем какое название установить
+	newTitle := denTitle
+	if oldTitle == numTitle {
+		newTitle = denTitle
+	} else {
+		newTitle = numTitle
+	}
+
+	// Меняем название
+	err = bot.SetChatTitle(ctx, &telego.SetChatTitleParams{
+		ChatID: chatID,
+		Title:  newTitle,
+	})
+	return err
 }

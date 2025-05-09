@@ -9,7 +9,6 @@ import (
 	"github.com/robfig/cron"
 	"log"
 	"os"
-	"time"
 )
 
 func main() {
@@ -24,8 +23,7 @@ func main() {
 
 	bot, bh, err := createBotAndPoll()
 
-	loc, _ := time.LoadLocation("Europe/Moscow")
-	c := cron.NewWithLocation(loc)
+	c := cron.New()
 
 	changeAllWeeks := func() {
 		ids, err1 := pickOverIds(db)
@@ -42,8 +40,6 @@ func main() {
 		}
 	}
 
-	photo, _ := os.ReadFile("connection.jpg")
-
 	tolstobrowConnection := func() {
 		ids, err1 := pickOverIds(db)
 		if err1 != nil {
@@ -51,8 +47,9 @@ func main() {
 		}
 		for _, id := range ids {
 			println(id)
-			chatID := telego.ChatID{ID: id}
-			_, err2 := bot.SendPhoto(context.Background(), &telego.SendPhotoParams{ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Photo: tu.FileFromReader(bytes.NewReader(photo), "connection"), Caption: "[Tolstobrow connection](https://edu.vsu.ru/mod/bigbluebuttonbn/view.php?id=1095331)"})
+			chat, _ := read(id, db)
+			photo, _ := os.ReadFile("connection.jpg")
+			_, err2 := bot.SendPhoto(context.Background(), &telego.SendPhotoParams{MessageThreadID: chat.InfoThread, ParseMode: telego.ModeMarkdownV2, ChatID: telego.ChatID{ID: chat.ID}, Photo: tu.FileFromReader(bytes.NewReader(photo), "connection"), Caption: "[Tolstobrow connection](https://edu.vsu.ru/mod/bigbluebuttonbn/view.php?id=1095331)"})
 			if err2 != nil {
 				//fmt.Print("ОШИБКА")
 				log.Println(err2)
@@ -63,17 +60,18 @@ func main() {
 	c.AddFunc("0 0 0 * * 1", changeAllWeeks)
 	c.AddFunc("0 30 18 * * 3", tolstobrowConnection)
 
-	tolstobrowConnection()
+	chatInit(bh, db)
+	changeNumDenum(bh, db)
+	changeWeek(bh, db)
+	changeTitle(bh, db)
+	setUsers(bh, db)
+	setMainThread(bh, db)
+	ping(bh, db)
 
-	chatInit(&bh, db)
-	changeNumDenum(&bh, db)
-	changeWeek(&bh, db)
-	changeTitle(&bh, db)
-	setUsers(&bh, db)
-	ping(&bh, db)
-	addNewPeople(&bh, db)
-	delLeftPeople(&bh, db)
-
+	// Не трогать
+	addNewPeople(bh, db)
+	delLeftPeople(bh, db)
+	// \/\/\/\/\/\/\/\/\/\
 	go c.Start()
 	defer c.Stop()
 

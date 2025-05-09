@@ -6,6 +6,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/mymmrac/telego v1.0.2
+	github.com/robfig/cron v1.2.0
 )
 
 require (

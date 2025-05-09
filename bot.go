@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func createBotAndPoll() (telego.Bot, <-chan telego.Update, th.BotHandler, error) {
+func createBotAndPoll() (*telego.Bot, th.BotHandler, error) {
 	err := godotenv.Load("token.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -21,14 +21,14 @@ func createBotAndPoll() (telego.Bot, <-chan telego.Update, th.BotHandler, error)
 	bot, err := telego.NewBot(os.Getenv("BOT_TOKEN"), telego.WithDefaultDebugLogger())
 	if err != nil {
 		log.Fatal(err)
-		return telego.Bot{}, nil, th.BotHandler{}, err
+		return nil, th.BotHandler{}, err
 	}
 	upd, err := bot.UpdatesViaLongPolling(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	bh, _ := th.NewBotHandler(bot, upd)
-	return *bot, upd, *bh, nil
+	return bot, *bh, nil
 }
 
 func chatInit(bh *th.BotHandler, db *sql.DB) Chat {
@@ -36,7 +36,7 @@ func chatInit(bh *th.BotHandler, db *sql.DB) Chat {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(fromID, ctx, chatID) {
+		if !isAdmin(fromID, ctx.Bot(), chatID) {
 			return nil
 		}
 		if !fromChat(chatID) {
@@ -59,7 +59,7 @@ func changeNumDenum(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(fromID, ctx, chatID) {
+		if !isAdmin(fromID, ctx.Bot(), chatID) {
 			return nil
 		}
 		chat, err := read(chatID.ID, db)
@@ -81,14 +81,14 @@ func setUsers(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(fromID, ctx, chatID) {
+		if !isAdmin(fromID, ctx.Bot(), chatID) {
 			return nil
 		}
 		chat, err := read(chatID.ID, db)
 		if err != nil {
 			return nil
 		}
-		people := strings.Split(update.Message.Text, " ")[1:]
+		people := strings.Split(strings.ReplaceAll(update.Message.Text, ",", ""), " ")[1:]
 		flag := true
 		for _, peopleStr := range people {
 			if peopleStr[0] != '@' {
@@ -98,7 +98,11 @@ func setUsers(bh *th.BotHandler, db *sql.DB) {
 		if flag {
 			chat.Users = []string{}
 			chat.Users = append(chat.Users, people...)
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: fmt.Sprintf("Список пользователей\n%v", chat.Users)})
+			if len(chat.Users) != 0 {
+				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: fmt.Sprintf("Список пользователей\n%v", chat.Users)})
+			} else {
+				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Список пользователей очищен"})
+			}
 			write(chat, db)
 		} else {
 			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Неверный формат команды!"})
@@ -111,7 +115,7 @@ func changeWeek(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(fromID, ctx, chatID) {
+		if !isAdmin(fromID, ctx.Bot(), chatID) {
 			return nil
 		}
 		chat, err := read(chatID.ID, db)
@@ -122,9 +126,9 @@ func changeWeek(bh *th.BotHandler, db *sql.DB) {
 		numTitle := fmt.Sprintf("[%v] %v", chat.Den, chat.Title)
 		denTitle := fmt.Sprintf("[%v] %v", chat.Num, chat.Title)
 		if oldTitle != numTitle {
-			changeChatTitle(numTitle, chatID, bh, ctx)
-		} else if oldTitle == numTitle {
-			changeChatTitle(denTitle, chatID, bh, ctx)
+			changeChatTitle(numTitle, chatID, ctx.Bot())
+		} else {
+			changeChatTitle(denTitle, chatID, ctx.Bot())
 		}
 		return nil
 	}, th.CommandEqual("changeWeek"))
@@ -134,17 +138,17 @@ func changeTitle(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		fromID := update.Message.From.ID
-		if !isAdmin(fromID, ctx, chatID) {
+		if !isAdmin(fromID, ctx.Bot(), chatID) {
 			return nil
 		}
-		chat, err := getChatByID(chatID, db, ctx)
+		chat, err := getChatByID(chatID, db, ctx.Bot())
 		if err != nil {
 			return nil
 		}
 		title := strings.Split(update.Message.Text, " ")[1]
 		chat.Title = title
 		title = fmt.Sprintf("[%v] %v", chat.Num, title)
-		changeChatTitle(title, chatID, bh, ctx)
+		changeChatTitle(title, chatID, ctx.Bot())
 		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Название изменено успешно"})
 		write(chat, db)
 		return nil
@@ -162,12 +166,16 @@ func ping(bh *th.BotHandler, db *sql.DB) {
 			pingMsg = update.Message.Text
 		}
 		chatID := update.Message.Chat.ChatID()
-		chat, err := getChatByID(chatID, db, ctx)
+		chat, err := getChatByID(chatID, db, ctx.Bot())
 		if err != nil {
 			return nil
 		}
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: msgID, Quote: pingMsg}, ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Text: "||" + strings.ReplaceAll(strings.Join(chat.Users, ", "), "_", "\\_") + "||"})
-
+		users := chat.Users
+		if len(users) <= 1 {
+			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Ошибка: некого пинговать"})
+		} else {
+			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: msgID, Quote: pingMsg}, ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Text: "||" + strings.ReplaceAll(strings.Join(users, ", "), "_", "\\_") + "||"})
+		}
 		return nil
 	}, th.CommandEqual("ping"))
 }
@@ -176,7 +184,7 @@ func ping(bh *th.BotHandler, db *sql.DB) {
 func addNewPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		chat, err := getChatByID(chatID, db, ctx)
+		chat, err := getChatByID(chatID, db, ctx.Bot())
 		if err != nil {
 			return nil
 		}
@@ -199,7 +207,7 @@ func addNewPeople(bh *th.BotHandler, db *sql.DB) {
 func delLeftPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		chat, err := getChatByID(chatID, db, ctx)
+		chat, err := getChatByID(chatID, db, ctx.Bot())
 		if err != nil {
 			return nil
 		}
@@ -217,4 +225,37 @@ func delLeftPeople(bh *th.BotHandler, db *sql.DB) {
 		}
 		return nil
 	}, th.AnyMessage())
+}
+
+func changeWeekMain(chatID telego.ChatID, bot *telego.Bot, db *sql.DB) error {
+	ctx := context.Background()
+	chat, err := read(chatID.ID, db)
+	if err != nil {
+		return err
+	}
+
+	// Получаем текущее название чата
+	chatInfo, err := bot.GetChat(ctx, &telego.GetChatParams{ChatID: chatID})
+	if err != nil {
+		return err
+	}
+	oldTitle := chatInfo.Title
+
+	numTitle := fmt.Sprintf("[%v] %v", chat.Den, chat.Title)
+	denTitle := fmt.Sprintf("[%v] %v", chat.Num, chat.Title)
+
+	// Определяем какое название установить
+	newTitle := denTitle
+	if oldTitle == numTitle {
+		newTitle = denTitle
+	} else {
+		newTitle = numTitle
+	}
+
+	// Меняем название
+	err = bot.SetChatTitle(ctx, &telego.SetChatTitleParams{
+		ChatID: chatID,
+		Title:  newTitle,
+	})
+	return err
 }

@@ -66,6 +66,30 @@ func read(id int64, db *sql.DB) (Chat, error) {
 	return chat, nil
 }
 
+func pickOverIds(db *sql.DB) ([]int64, error) {
+	raw, err := db.Query("SELECT id FROM chats")
+	if err != nil {
+		return nil, err
+	}
+	defer raw.Close()
+
+	var ids []int64
+
+	for raw.Next() {
+		var id int64
+
+		err = raw.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
 func deleteChat(id int64, db *sql.DB) error {
 	result, err := db.Exec("DELETE FROM chats WHERE id = ?", id)
 	if err != nil {

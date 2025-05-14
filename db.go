@@ -27,7 +27,7 @@ func write(chat Chat, db *sql.DB) error {
 
 func read(id int64, db *sql.DB) (Chat, error) {
 	// В запросе нужно добавить WHERE для фильтрации по id
-	row := db.QueryRow("SELECT * FROM chats WHERE id = ?", id)
+	row := db.QueryRow("SELECT id, main_topic, num, den, title, users FROM chats WHERE id = ?", id)
 
 	var (
 		dbId      int64
@@ -38,7 +38,6 @@ func read(id int64, db *sql.DB) (Chat, error) {
 		usersJSON string
 	)
 
-	// Сканируем данные из одной строки
 	err := row.Scan(&dbId, &mainTopic, &num, &den, &title, &usersJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {

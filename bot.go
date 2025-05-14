@@ -149,7 +149,7 @@ func changeTitle(bh *th.BotHandler, db *sql.DB) {
 			return nil
 		}
 
-		title := strings.Split(update.Message.Text, " ")[1]
+		title := strings.Join(strings.Split(update.Message.Text, " ")[1:], " ")
 		chat.Title = title
 		title = fmt.Sprintf("[%v] %v", chat.Num, title)
 		changeChatTitle(title, chatID, ctx.Bot())

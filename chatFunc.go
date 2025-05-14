@@ -11,7 +11,7 @@ type Chat struct {
 	Users      []string `bson:"users"`
 }
 
-func createChat(id int64, title string) Chat {
+func CreateChat(id int64, title string) Chat {
 	chat := Chat{}
 	chat.ID = id
 	chat.InfoThread = 0
@@ -22,6 +22,6 @@ func createChat(id int64, title string) Chat {
 	return chat
 }
 
-func (c Chat) toString() string {
+func (c Chat) ToString() string {
 	return fmt.Sprintf("%v %v %v %v %v %v", c.ID, c.InfoThread, c.Num, c.Den, c.Title, c.Users)
 }

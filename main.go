@@ -21,11 +21,11 @@ func main() {
 
 	// НЕ ТРОГАТЬ ВСЕ ЧТО ВЫШЕ
 
-	bot, bh, err := createBotAndPoll()
+	bot, bh, err := CreateBotAndPoll()
 
 	c := cron.New()
 
-	changeAllWeeks := func() {
+	ChangeAllWeeks := func() {
 		ids, err1 := pickOverIds(db)
 		if err1 != nil {
 			log.Println(err1)
@@ -40,7 +40,7 @@ func main() {
 		}
 	}
 
-	tolstobrowConnection := func() {
+	TolstobrowConnection := func() {
 		ids, err1 := pickOverIds(db)
 		if err1 != nil {
 			log.Println(err1)
@@ -57,20 +57,43 @@ func main() {
 		}
 	}
 
-	c.AddFunc("0 0 0 * * 1", changeAllWeeks)
-	c.AddFunc("0 30 18 * * 3", tolstobrowConnection)
+	c.AddFunc("0 0 0 * * 1", ChangeAllWeeks)
+	c.AddFunc("0 30 18 * * 3", TolstobrowConnection)
 
-	chatInit(bh, db)
-	changeNumDenum(bh, db)
-	changeWeek(bh, db)
-	changeTitle(bh, db)
-	setUsers(bh, db)
-	setMainThread(bh, db)
-	ping(bh, db)
+	adminCmds := []telego.BotCommand{
+		{Command: "init", Description: "Проинициализировать бота"},
+		{Command: "changeweek", Description: "Вручную сменить ЧИСЛ/ЗНАМ"},
+		{Command: "changeweektitle", Description: "Сменить названия ЧИСЛ/ЗНАМ(использовать без [])"},
+		{Command: "changetitle", Description: "Сменить название чата(без ЧИСЛ/ЗНАМ)"},
+		{Command: "setusers", Description: "Установить список пользователей(для пинга)"},
+		{Command: "ping", Description: "Пинг всех(установленных) юзеров(через @)"},
+		{Command: "setmainthread", Description: "Установить чат(только для суперчатов) для уведомлений(напр. Толстобров)"},
+	}
+
+	userCmds := []telego.BotCommand{
+		{Command: "ping", Description: "Пинг всех(установленных) юзеров"},
+	}
+
+	//bot.DeleteMyCommands(context.Background(), nil)
+	err = bot.SetMyCommands(context.Background(), &telego.SetMyCommandsParams{Commands: adminCmds, Scope: telego.BotCommandScope(&telego.BotCommandScopeAllChatAdministrators{"all_chat_administrators"})})
+	if err != nil {
+		log.Println(err)
+	}
+	err = bot.SetMyCommands(context.Background(), &telego.SetMyCommandsParams{Commands: userCmds, Scope: &telego.BotCommandScopeAllGroupChats{"all_group_chats"}})
+	if err != nil {
+		log.Println(err)
+	}
+	ChatInit(bh, db)
+	ChangeNumDenum(bh, db)
+	ChangeWeek(bh, db)
+	ChangeTitle(bh, db)
+	SetUsers(bh, db)
+	SetMainThread(bh, db)
+	Ping(bh, db)
 
 	// Не трогать
-	addNewPeople(bh, db)
-	delLeftPeople(bh, db)
+	AddNewPeople(bh, db)
+	DelLeftPeople(bh, db)
 	// \/\/\/\/\/\/\/\/\/\
 	go c.Start()
 	defer c.Stop()

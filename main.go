@@ -9,6 +9,7 @@ import (
 	"github.com/robfig/cron"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -23,7 +24,11 @@ func main() {
 
 	bot, bh, err := CreateBotAndPoll()
 
-	c := cron.New()
+	moscowTime, err := time.LoadLocation("Europe/Moscow")
+	if err != nil {
+		log.Fatal(err)
+	}
+	c := cron.NewWithLocation(moscowTime)
 
 	ChangeAllWeeks := func() {
 		ids, err1 := pickOverIds(db)

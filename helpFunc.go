@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/mymmrac/telego"
 	"slices"
@@ -38,23 +37,23 @@ func isAdmin(userId int64, bot *telego.Bot, id telego.ChatID) bool {
 	return false
 }
 
-func getChatByID(chatID telego.ChatID, db *sql.DB, bot *telego.Bot) (Chat, error) {
+func getChatByID(chatID telego.ChatID, db *sql.DB, bot *telego.Bot) *Chat {
 	ctx := context.Background()
 	if !fromChat(chatID) {
-		return Chat{}, errors.New("Не из чата!")
+		return nil
 	}
-	chat, err := read(chatID.ID, db)
-	if err != nil {
+	chat := read(chatID.ID, db)
+	if chat == nil {
 		bot.SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
 	}
-	return chat, nil
+	return chat
 }
 
 func changeWeekMain(chatID telego.ChatID, bot *telego.Bot, db *sql.DB) error {
 	ctx := context.Background()
-	chat, err := read(chatID.ID, db)
-	if err != nil {
-		return err
+	chat := read(chatID.ID, db)
+	if chat == nil {
+		return fmt.Errorf("Нет такого чата")
 	}
 
 	// Получаем текущее название чата

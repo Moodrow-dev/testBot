@@ -11,7 +11,7 @@ type Chat struct {
 	Users      []string `bson:"users"`
 }
 
-func CreateChat(id int64, title string) Chat {
+func CreateChat(id int64, title string) *Chat {
 	chat := Chat{}
 	chat.ID = id
 	chat.InfoThread = 0
@@ -19,7 +19,7 @@ func CreateChat(id int64, title string) Chat {
 	chat.Den = "Знаменатель"
 	chat.Title = title
 	chat.Users = []string{}
-	return chat
+	return &chat
 }
 
 func (c Chat) ToString() string {

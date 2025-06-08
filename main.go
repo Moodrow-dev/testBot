@@ -52,7 +52,7 @@ func main() {
 		}
 		for _, id := range ids {
 			println(id)
-			chat, _ := read(id, db)
+			chat := read(id, db)
 			photo, _ := os.ReadFile("connection.jpg")
 			_, err2 := bot.SendPhoto(context.Background(), &telego.SendPhotoParams{MessageThreadID: chat.InfoThread, ParseMode: telego.ModeMarkdownV2, ChatID: telego.ChatID{ID: chat.ID}, Photo: tu.FileFromReader(bytes.NewReader(photo), "connection"), Caption: "[Tolstobrow connection](https://edu.vsu.ru/mod/bigbluebuttonbn/view.php?id=1095331)"})
 			if err2 != nil {
@@ -95,6 +95,8 @@ func main() {
 	SetUsers(bh, db)
 	SetMainThread(bh, db)
 	Ping(bh, db)
+	AdvertiseBoosty(bh, db)
+	AdvertiseGit(bh, db)
 
 	// Не трогать
 	AddNewPeople(bh, db)

@@ -244,7 +244,7 @@ func AdvertiseGit(bh *th.BotHandler, db *sql.DB) {
 		}
 		bot.SendMessage(ctx, &telego.SendMessageParams{LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на звездочет](https://github.com/voskhod-1/starsresearch)"})
 		return nil
-	}, th.Or(th.TextContains("гит"), th.TextContains("звездочет"), th.TextContains("космо")))
+	}, th.And(th.Or(th.TextContains("гит"), th.TextContains("звездочет"), th.TextContains("космо")), th.Not(th.Or(th.TextContains("гитлер"), th.TextContains("гитар")))))
 }
 
 func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {

@@ -17,7 +17,7 @@ func write(chat *Chat, db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	result, exec := db.Exec("INSERT INTO chats (id, main_topic, num, den, title, users) VALUES (?, ?, ?, ?, ?, ?)", chat.ID, chat.InfoThread, chat.Num, chat.Den, chat.Title, usersJson)
+	result, exec := db.Exec("INSERT INTO chats (id, main_topic, num, den, title, users, use_tolstobrow) VALUES (?, ?, ?, ?, ?, ?,?)", chat.ID, chat.InfoThread, chat.Num, chat.Den, chat.Title, usersJson, chat.UseTolstobrow)
 	if exec != nil {
 		return exec
 	}
@@ -27,18 +27,19 @@ func write(chat *Chat, db *sql.DB) error {
 
 func read(id int64, db *sql.DB) *Chat {
 	// В запросе нужно добавить WHERE для фильтрации по id
-	row := db.QueryRow("SELECT id, main_topic, num, den, title, users FROM chats WHERE id = ?", id)
+	row := db.QueryRow("SELECT id, main_topic, num, den, title, users, use_tolstobrow FROM chats WHERE id = ?", id)
 
 	var (
-		dbId      int64
-		mainTopic int
-		num       string
-		den       string
-		title     string
-		usersJSON string
+		dbId          int64
+		mainTopic     int
+		num           string
+		den           string
+		title         string
+		usersJSON     string
+		useTolstobrow bool
 	)
 
-	err := row.Scan(&dbId, &mainTopic, &num, &den, &title, &usersJSON)
+	err := row.Scan(&dbId, &mainTopic, &num, &den, &title, &usersJSON, &useTolstobrow)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil
@@ -54,12 +55,13 @@ func read(id int64, db *sql.DB) *Chat {
 
 	// Создаем и возвращаем объект Chat
 	chat := Chat{
-		ID:         dbId,
-		InfoThread: mainTopic,
-		Num:        num,
-		Den:        den,
-		Title:      title,
-		Users:      usersSlice,
+		ID:            dbId,
+		InfoThread:    mainTopic,
+		Num:           num,
+		Den:           den,
+		Title:         title,
+		Users:         usersSlice,
+		UseTolstobrow: useTolstobrow,
 	}
 
 	return &chat
@@ -114,7 +116,8 @@ func createTable(db *sql.DB) error {
 		num STRING,
 		den STRING,
 		title STRING,
-		users STRING
+		users STRING,
+		use_tolstorbrow BOOLEAN DEFAULT FALSE,
     	name TEXT NOT NULL,
     	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`)

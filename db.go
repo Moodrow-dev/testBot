@@ -7,7 +7,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func write(chat Chat, db *sql.DB) error {
+func write(chat *Chat, db *sql.DB) error {
 	usersJson, err := json.Marshal(chat.Users)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func write(chat Chat, db *sql.DB) error {
 	return nil
 }
 
-func read(id int64, db *sql.DB) (Chat, error) {
+func read(id int64, db *sql.DB) *Chat {
 	// В запросе нужно добавить WHERE для фильтрации по id
 	row := db.QueryRow("SELECT id, main_topic, num, den, title, users FROM chats WHERE id = ?", id)
 
@@ -41,15 +41,15 @@ func read(id int64, db *sql.DB) (Chat, error) {
 	err := row.Scan(&dbId, &mainTopic, &num, &den, &title, &usersJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Chat{}, fmt.Errorf("Чат %d не найден", id)
+			return nil
 		}
-		return Chat{}, err
+		return nil
 	}
 
 	// Декодируем JSON массив пользователей
 	var usersSlice []string
 	if err := json.Unmarshal([]byte(usersJSON), &usersSlice); err != nil {
-		return Chat{}, fmt.Errorf("failed to unmarshal users: %v", err)
+		return nil
 	}
 
 	// Создаем и возвращаем объект Chat
@@ -62,7 +62,7 @@ func read(id int64, db *sql.DB) (Chat, error) {
 		Users:      usersSlice,
 	}
 
-	return chat, nil
+	return &chat
 }
 
 func pickOverIds(db *sql.DB) ([]int64, error) {

@@ -187,8 +187,8 @@ func Ping(bh *th.BotHandler, db *sql.DB) {
 func EnableTolstobrow(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		chat, err := getChatByID(chatID, db, ctx.Bot())
-		if err != nil {
+		chat := getChatByID(chatID, db, ctx.Bot())
+		if chat == nil {
 			return nil
 		}
 		var word string

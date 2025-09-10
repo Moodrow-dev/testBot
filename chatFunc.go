@@ -12,7 +12,7 @@ type Chat struct {
 	UseTolstobrow bool     `bson:"use_tolbrow"`
 }
 
-func CreateChat(id int64, title string) Chat {
+func CreateChat(id int64, title string) *Chat {
 	chat := Chat{}
 	chat.ID = id
 	chat.InfoThread = 0
@@ -21,7 +21,7 @@ func CreateChat(id int64, title string) Chat {
 	chat.Title = title
 	chat.Users = []string{}
 	chat.UseTolstobrow = false
-	return chat
+	return &chat
 }
 
 func (c Chat) ToString() string {

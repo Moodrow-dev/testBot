@@ -185,6 +185,26 @@ func Ping(bh *th.BotHandler, db *sql.DB) {
 	}, th.CommandEqual("Ping"))
 }
 
+func EnableTolstobrow(bh *th.BotHandler, db *sql.DB) {
+	bh.Handle(func(ctx *th.Context, update telego.Update) error {
+		chatID := update.Message.Chat.ChatID()
+		chat, err := getChatByID(chatID, db, ctx.Bot())
+		if err != nil {
+			return nil
+		}
+		var word string
+		if chat.UseTolstobrow {
+			chat.UseTolstobrow = false
+			word = "усыпили"
+		} else {
+			chat.UseTolstobrow = true
+			word = "разбудили"
+		}
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: fmt.Sprintf("Вы %v деда", word)})
+		return nil
+	}, th.CommandEqual("EnableTolstobrow"))
+}
+
 // Пассивные функции \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 func AddNewPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {

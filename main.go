@@ -85,6 +85,7 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+
 	ChatInit(bh, db)
 	ChangeNumDenum(bh, db)
 	ChangeWeek(bh, db)

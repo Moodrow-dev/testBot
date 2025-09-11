@@ -211,6 +211,7 @@ func Tolstobrow(bh *th.BotHandler, db *sql.DB) {
 			chat.UseTolstobrow = true
 			word = "разбудили"
 		}
+		write(chat, db)
 		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: fmt.Sprintf("Вы %v деда", word)})
 		return nil
 	}, th.CommandEqual("Tolstobrow"))

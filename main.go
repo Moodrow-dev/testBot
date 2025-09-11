@@ -95,6 +95,8 @@ func main() {
 	SetMainThread(bh, db)
 	Ping(bh, db)
 	Tolstobrow(bh, db)
+	AdvertiseGit(bh, db)
+	AdvertiseBoosty(bh, db)
 
 	// Не трогать
 	AddNewPeople(bh, db)

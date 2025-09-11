@@ -296,6 +296,9 @@ func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
 func SetMainThread(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
+		if !isAdmin(update.Message.From.ID, ctx.Bot(), chatID) {
+			return nil
+		}
 		chat := getChatByID(chatID, db, ctx.Bot())
 		if chat == nil {
 			return nil

@@ -9,7 +9,7 @@ type Chat struct {
 	Den           string   `bson:"den"`
 	Title         string   `bson:"title"`
 	Users         []string `bson:"users"`
-	UseTolstobrow bool     `bson:"use_tolbrow"`
+	UseTolstobrow bool     `bson:"use_tolstobrow"`
 }
 
 func CreateChat(id int64, title string) *Chat {

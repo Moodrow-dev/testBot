@@ -44,12 +44,21 @@ func ChatInit(bh *th.BotHandler, db *sql.DB) *Chat {
 		}
 		chat = read(chatID.ID, db)
 		if chat == nil {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Бот не инициализирован"})
+			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Бот не инициализирован"})
+			if err != nil {
+				log.Printf("Ошибка отправки сообщения: %v", err)
+			}
 			chat = CreateChat(chatID.ID, update.Message.Chat.Title)
-			write(chat, db)
+			err = write(chat, db)
+			if err != nil {
+				log.Printf("Ошибка записи чата в БД: %v", err)
+			}
 		}
 
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Чат успешно инициализирован"})
+		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Чат успешно инициализирован"})
+		if err != nil {
+			log.Printf("Ошибка отправки сообщения об успешной инициализации: %v", err)
+		}
 		return nil
 	}, th.CommandEqual("init"))
 	return chat

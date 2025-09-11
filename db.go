@@ -117,8 +117,7 @@ func createTable(db *sql.DB) error {
 		den STRING,
 		title STRING,
 		users STRING,
-		use_tolstorbrow BOOLEAN DEFAULT FALSE,
-    	name TEXT NOT NULL,
+		use_tolstobrow BOOLEAN DEFAULT FALSE,
     	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`)
 	if err != nil {

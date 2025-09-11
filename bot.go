@@ -193,9 +193,12 @@ func Ping(bh *th.BotHandler, db *sql.DB) {
 	}, th.CommandEqual("Ping"))
 }
 
-func EnableTolstobrow(bh *th.BotHandler, db *sql.DB) {
+func Tolstobrow(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
+		if !isAdmin(update.Message.From.ID, ctx.Bot(), chatID) {
+			return nil
+		}
 		chat := getChatByID(chatID, db, ctx.Bot())
 		if chat == nil {
 			return nil
@@ -210,7 +213,7 @@ func EnableTolstobrow(bh *th.BotHandler, db *sql.DB) {
 		}
 		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: fmt.Sprintf("Вы %v деда", word)})
 		return nil
-	}, th.CommandEqual("EnableTolstobrow"))
+	}, th.CommandEqual("Tolstobrow"))
 }
 
 // Пассивные функции \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\

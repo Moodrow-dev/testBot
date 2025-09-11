@@ -70,6 +70,7 @@ func main() {
 		{Command: "setusers", Description: "Установить список пользователей(для пинга)"},
 		{Command: "ping", Description: "Пинг всех(установленных) юзеров(через @)"},
 		{Command: "setmainthread", Description: "Установить чат(только для суперчатов) для уведомлений(напр. Толстобров)"},
+		{Command: "tolstobrow", Description: "Включить/выключить оповещения на пары Толстоброва"},
 	}
 
 	userCmds := []telego.BotCommand{
@@ -93,7 +94,7 @@ func main() {
 	SetUsers(bh, db)
 	SetMainThread(bh, db)
 	Ping(bh, db)
-	EnableTolstobrow(bh, db)
+	Tolstobrow(bh, db)
 
 	// Не трогать
 	AddNewPeople(bh, db)

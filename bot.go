@@ -9,6 +9,7 @@ import (
 	th "github.com/mymmrac/telego/telegohandler"
 	"log"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -277,7 +278,7 @@ func AdvertiseGit(bh *th.BotHandler, db *sql.DB) {
 		}
 		bot.SendMessage(ctx, &telego.SendMessageParams{LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на звездочет](https://github.com/voskhod-1/starsresearch)"})
 		return nil
-	}, th.And(th.Or(th.TextContains("гит"), th.TextContains("звездочет"), th.TextContains("космо")), th.Not(th.Or(th.TextContains("гитлер"), th.TextContains("гитар")))))
+	}, th.Or(th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Зз][Вв][ЕеЁё][Зз][Дд][Оо][Чч][ЕеЁё][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Гг][Ии][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Кк][Оо][Сс][Мм][Оо](?:\s|[.,!?]|$)`))))
 }
 
 func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
@@ -290,7 +291,7 @@ func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
 		}
 		bot.SendMessage(ctx, &telego.SendMessageParams{LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на бусти](https://boosty.to/starsresearch)"})
 		return nil
-	}, th.TextContains("бусти"))
+	}, th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Бб][Уу][Сс][Тт][Ии](?:\s|[.,!?]|$)`)))
 }
 
 func SetMainThread(bh *th.BotHandler, db *sql.DB) {

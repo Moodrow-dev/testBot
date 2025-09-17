@@ -50,7 +50,7 @@ func main() {
 			chat := read(id, db)
 			if chat.UseTolstobrow {
 				photo, _ := os.ReadFile("connection.jpg")
-				_, err2 := bot.SendPhoto(context.Background(), &telego.SendPhotoParams{MessageThreadID: chat.InfoThread, ParseMode: telego.ModeMarkdownV2, ChatID: telego.ChatID{ID: chat.ID}, Photo: tu.FileFromReader(bytes.NewReader(photo), "connection"), Caption: "[Tolstobrow connection](https://edu.vsu.ru/mod/bigbluebuttonbn/view.php?id=1095331)"})
+				_, err2 := bot.SendPhoto(context.Background(), &telego.SendPhotoParams{MessageThreadID: chat.InfoThread, ParseMode: telego.ModeMarkdownV2, ChatID: telego.ChatID{ID: chat.ID}, Photo: tu.FileFromReader(bytes.NewReader(photo), "connection"), Caption: "[Tolstobrow connection](https://edu.vsu.ru/)"})
 				if err2 != nil {
 					//fmt.Print("ОШИБКА")
 					log.Println(err2)
@@ -62,30 +62,8 @@ func main() {
 	c.AddFunc("0 0 0 * * 1", ChangeAllWeeks)
 	c.AddFunc("0 30 18 * * 3", TolstobrowConnection)
 
-	adminCmds := []telego.BotCommand{
-		{Command: "init", Description: "Проинициализировать бота"},
-		{Command: "changeweek", Description: "Вручную сменить ЧИСЛ/ЗНАМ"},
-		{Command: "changeweektitle", Description: "Сменить названия ЧИСЛ/ЗНАМ(использовать без [])"},
-		{Command: "changetitle", Description: "Сменить название чата(без ЧИСЛ/ЗНАМ)"},
-		{Command: "setusers", Description: "Установить список пользователей(для пинга)"},
-		{Command: "ping", Description: "Пинг всех(установленных) юзеров(через @)"},
-		{Command: "setmainthread", Description: "Установить чат(только для суперчатов) для уведомлений(напр. Толстобров)"},
-		{Command: "tolstobrow", Description: "Включить/выключить оповещения на пары Толстоброва"},
-	}
-
-	userCmds := []telego.BotCommand{
-		{Command: "ping", Description: "Пинг всех(установленных) юзеров"},
-	}
-
 	//bot.DeleteMyCommands(context.Background(), nil)
-	err = bot.SetMyCommands(context.Background(), &telego.SetMyCommandsParams{Commands: adminCmds, Scope: telego.BotCommandScope(&telego.BotCommandScopeAllChatAdministrators{"all_chat_administrators"})})
-	if err != nil {
-		log.Println(err)
-	}
-	err = bot.SetMyCommands(context.Background(), &telego.SetMyCommandsParams{Commands: userCmds, Scope: &telego.BotCommandScopeAllGroupChats{"all_group_chats"}})
-	if err != nil {
-		log.Println(err)
-	}
+	SetAllCommands(bot)
 
 	ChatInit(bh, db)
 	ChangeNumDenum(bh, db)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mymmrac/telego"
 	"slices"
+	"strings"
 )
 
 func changeChatTitle(title string, chatID telego.ChatID, bot *telego.Bot) {
@@ -80,4 +81,21 @@ func changeWeekMain(chatID telego.ChatID, bot *telego.Bot, db *sql.DB) error {
 		Title:  newTitle,
 	})
 	return err
+}
+
+// EscapeMarkdown экранирует специальные символы Markdown, чтобы они отображались как текст.
+func EscapeMarkdown(text string) string {
+	// Список символов Markdown, которые нужно экранировать
+	specialChars := []string{
+		`\`, `*`, `_`, `#`, `>`, `[`, `]`, `(`, `)`, "`", `~`, `-`, `+`, `.`, `!`, `|`,
+	}
+
+	result := text
+	for _, char := range specialChars {
+		// Заменяем каждый специальный символ на экранированную версию
+		escapedChar := `\` + char
+		result = strings.ReplaceAll(result, char, escapedChar)
+	}
+
+	return result
 }

@@ -14,6 +14,21 @@ import (
 	"strings"
 )
 
+var adminCmds = []telego.BotCommand{
+	{Command: "init", Description: "Проинициализировать бота"},
+	{Command: "changeweek", Description: "Вручную сменить ЧИСЛ/ЗНАМ"},
+	{Command: "changeweektitle", Description: "Сменить названия ЧИСЛ/ЗНАМ(использовать без [])"},
+	{Command: "changetitle", Description: "Сменить название чата(без ЧИСЛ/ЗНАМ)"},
+	{Command: "setusers", Description: "Установить список пользователей(для пинга)"},
+	{Command: "ping", Description: "Пинг всех(установленных) юзеров(через @)"},
+	{Command: "setmainthread", Description: "Установить чат(только для суперчатов) для уведомлений(напр. Толстобров)"},
+	{Command: "tolstobrow", Description: "Включить/выключить оповещения на пары Толстоброва"},
+}
+
+var userCmds = []telego.BotCommand{
+	{Command: "ping", Description: "Пинг всех(установленных) юзеров"},
+}
+
 func CreateBotAndPoll() (*telego.Bot, *th.BotHandler, error) {
 	err := godotenv.Load("token.env")
 	if err != nil {
@@ -83,7 +98,7 @@ func ChangeNumDenum(bh *th.BotHandler, db *sql.DB) {
 		chat.Num = num
 		chat.Den = denum
 		write(chat, db)
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Успешно.\nЧислитель теперь: %v,\nзнаменатель теперь: %v", num, denum)})
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ParseMode: telego.ModeMarkdownV2, DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Успешно.\nЧислитель теперь: `%v`,\nзнаменатель теперь: `%v`", EscapeMarkdown(num), EscapeMarkdown(denum))})
 		return nil
 	}, th.CommandEqualArgc("changeWeekTitle", 2))
 }
@@ -111,7 +126,7 @@ func SetUsers(bh *th.BotHandler, db *sql.DB) {
 			chat.Users = []string{}
 			chat.Users = append(chat.Users, people...)
 			if len(chat.Users) != 0 {
-				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Список пользователей\n%v", chat.Users)})
+				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Список пользователей\n%v", strings.Join(chat.Users, ","))})
 			} else {
 				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Список пользователей очищен"})
 			}
@@ -188,7 +203,7 @@ func Ping(bh *th.BotHandler, db *sql.DB) {
 		if len(users) <= 1 {
 			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Ошибка: некого пинговать"})
 		} else {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: msgID, Quote: pingMsg}, ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Text: "||" + strings.ReplaceAll(strings.Join(users, ", "), "_", "\\_") + "||"})
+			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: msgID, Quote: pingMsg}, ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Text: "||" + EscapeMarkdown(strings.Join(users, ", ")) + "||"})
 		}
 		return nil
 	}, th.CommandEqual("Ping"))
@@ -310,4 +325,15 @@ func SetMainThread(bh *th.BotHandler, db *sql.DB) {
 		write(chat, db)
 		return nil
 	}, th.CommandEqual("SetMainThread"))
+}
+
+func SetAllCommands(bot *telego.Bot) {
+	err := bot.SetMyCommands(context.Background(), &telego.SetMyCommandsParams{Commands: adminCmds, Scope: telego.BotCommandScope(&telego.BotCommandScopeAllChatAdministrators{"all_chat_administrators"})})
+	if err != nil {
+		log.Println(err)
+	}
+	err = bot.SetMyCommands(context.Background(), &telego.SetMyCommandsParams{Commands: userCmds, Scope: &telego.BotCommandScopeAllGroupChats{"all_group_chats"}})
+	if err != nil {
+		log.Println(err)
+	}
 }

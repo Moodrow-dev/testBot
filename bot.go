@@ -60,7 +60,7 @@ func ChatInit(bh *th.BotHandler, db *sql.DB) *Chat {
 		}
 		chat = read(chatID.ID, db)
 		if chat == nil {
-			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Бот не инициализирован"})
+			_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, ChatID: chatID, Text: "Бот не инициализирован\n/init"})
 			if err != nil {
 				log.Printf("Ошибка отправки сообщения: %v", err)
 			}
@@ -71,7 +71,7 @@ func ChatInit(bh *th.BotHandler, db *sql.DB) *Chat {
 			}
 		}
 
-		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Чат успешно инициализирован"})
+		_, err := ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, ChatID: chatID, Text: "Чат успешно инициализирован"})
 		if err != nil {
 			log.Printf("Ошибка отправки сообщения об успешной инициализации: %v", err)
 		}
@@ -98,7 +98,7 @@ func ChangeNumDenum(bh *th.BotHandler, db *sql.DB) {
 		chat.Num = num
 		chat.Den = denum
 		write(chat, db)
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ParseMode: telego.ModeMarkdownV2, DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Успешно.\nЧислитель теперь: `%v`,\nзнаменатель теперь: `%v`", EscapeMarkdown(num), EscapeMarkdown(denum))})
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Успешно.\nЧислитель теперь: `%v`,\nзнаменатель теперь: `%v`", EscapeMarkdown(num), EscapeMarkdown(denum))})
 		return nil
 	}, th.CommandEqualArgc("changeWeekTitle", 2))
 }
@@ -126,13 +126,13 @@ func SetUsers(bh *th.BotHandler, db *sql.DB) {
 			chat.Users = []string{}
 			chat.Users = append(chat.Users, people...)
 			if len(chat.Users) != 0 {
-				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Список пользователей\n%v", strings.Join(chat.Users, ","))})
+				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, DisableNotification: true, ChatID: chatID, Text: fmt.Sprintf("Список пользователей\n%v", strings.Join(chat.Users, ","))})
 			} else {
-				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Список пользователей очищен"})
+				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, DisableNotification: true, ChatID: chatID, Text: "Список пользователей очищен"})
 			}
 			write(chat, db)
 		} else {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Неверный формат команды!"})
+			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, DisableNotification: true, ChatID: chatID, Text: "Неверный формат команды!"})
 		}
 		return nil
 	}, th.CommandEqual("SetUsers"))
@@ -177,7 +177,7 @@ func ChangeTitle(bh *th.BotHandler, db *sql.DB) {
 		chat.Title = title
 		title = fmt.Sprintf("[%v] %v", chat.Num, title)
 		changeChatTitle(title, chatID, ctx.Bot())
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, DisableNotification: true, Text: "Название изменено успешно"})
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, ChatID: chatID, DisableNotification: true, Text: "Название изменено успешно"})
 		write(chat, db)
 		return nil
 	}, th.CommandEqual("ChangeTitle"))
@@ -201,7 +201,7 @@ func Ping(bh *th.BotHandler, db *sql.DB) {
 
 		users := chat.Users
 		if len(users) <= 1 {
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Ошибка: некого пинговать"})
+			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, DisableNotification: true, ChatID: chatID, Text: "Ошибка: некого пинговать"})
 		} else {
 			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: msgID, Quote: pingMsg}, ParseMode: telego.ModeMarkdownV2, ChatID: chatID, Text: "||" + EscapeMarkdown(strings.Join(users, ", ")) + "||"})
 		}
@@ -228,7 +228,7 @@ func Tolstobrow(bh *th.BotHandler, db *sql.DB) {
 			word = "разбудили"
 		}
 		write(chat, db)
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: fmt.Sprintf("Вы %v деда", word)})
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, ChatID: chatID, Text: fmt.Sprintf("Вы %v деда", word)})
 		return nil
 	}, th.CommandEqual("Tolstobrow"))
 }
@@ -291,9 +291,9 @@ func AdvertiseGit(bh *th.BotHandler, db *sql.DB) {
 		if chat == nil {
 			return nil
 		}
-		bot.SendMessage(ctx, &telego.SendMessageParams{LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на звездочет](https://github.com/voskhod-1/starsresearch)"})
+		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на звездочет](https://github.com/voskhod-1/starsresearch)"})
 		return nil
-	}, th.Or(th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Зз][Вв][ЕеЁё][Зз][Дд][Оо][Чч][ЕеЁё][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Гг][Ии][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Кк][Оо][Сс][Мм][Оо](?:\s|[.,!?]|$)`))))
+	}, th.Or(th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Зз][Вв][ЕеЁё][Зз][Дд][Оо][Чч][ЕеЁё][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Г][Ии][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Кк][Оо][Сс][Мм][Оо](?:\s|[.,!?]|$)`))))
 }
 
 func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
@@ -304,7 +304,7 @@ func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
 		if chat == nil {
 			return nil
 		}
-		bot.SendMessage(ctx, &telego.SendMessageParams{LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на бусти](https://boosty.to/starsresearch)"})
+		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на бусти](https://boosty.to/starsresearch)"})
 		return nil
 	}, th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Бб][Уу][Сс][Тт][Ии](?:\s|[.,!?]|$)`)))
 }
@@ -321,7 +321,7 @@ func SetMainThread(bh *th.BotHandler, db *sql.DB) {
 		}
 		threadID := update.Message.MessageThreadID
 		chat.InfoThread = threadID
-		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Тема для уведомлений установлена"})
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, DisableNotification: true, ChatID: chatID, Text: "Тема для уведомлений установлена"})
 		write(chat, db)
 		return nil
 	}, th.CommandEqual("SetMainThread"))

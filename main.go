@@ -74,7 +74,7 @@ func main() {
 	Ping(bh, db)
 	Tolstobrow(bh, db)
 	AdvertiseGit(bh, db)
-	AdvertiseBoosty(bh, db)
+	AdvertiseTelega(bh, db)
 
 	// Не трогать
 	AddNewPeople(bh, db)

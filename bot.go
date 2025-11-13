@@ -296,7 +296,7 @@ func AdvertiseGit(bh *th.BotHandler, db *sql.DB) {
 	}, th.Or(th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Зз][Вв][ЕеЁё][Зз][Дд][Оо][Чч][ЕеЁё][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Г][Ии][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Кк][Оо][Сс][Мм][Оо](?:\s|[.,!?]|$)`))))
 }
 
-func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
+func AdvertiseTelega(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		bot := ctx.Bot()
@@ -304,9 +304,9 @@ func AdvertiseBoosty(bh *th.BotHandler, db *sql.DB) {
 		if chat == nil {
 			return nil
 		}
-		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на бусти](https://boosty.to/starsresearch)"})
+		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на телегу](https://t.me/starsresearchteam)"})
 		return nil
-	}, th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Бб][Уу][Сс][Тт][Ии](?:\s|[.,!?]|$)`)))
+	}, th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Тт][Ее][Лл][Ее][Гг][Аа](?:\s|[.,!?]|$)`)))
 }
 
 func SetMainThread(bh *th.BotHandler, db *sql.DB) {

@@ -304,7 +304,7 @@ func AdvertiseTelega(bh *th.BotHandler, db *sql.DB) {
 		if chat == nil {
 			return nil
 		}
-		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на телегу](https://t.me/starsresearchteam)"})
+		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на телегу](https://t.me/starsresearchnews)"})
 		return nil
 	}, th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])([Тт][Ее][Лл][Ее][Гг]([Аа]|[Ии]|[Ее]|[Уу]|[Oo][Йй]))(?:\s|[.,!?]|$)`)))
 }

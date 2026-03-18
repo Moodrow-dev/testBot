@@ -73,7 +73,7 @@ func main() {
 	SetMainThread(bh, db)
 	Ping(bh, db)
 	Tolstobrow(bh, db)
-	AdvertiseGit(bh, db)
+	AdvertiseWiki(bh, db)
 	AdvertiseTelega(bh, db)
 
 	// Не трогать

@@ -283,7 +283,7 @@ func DelLeftPeople(bh *th.BotHandler, db *sql.DB) {
 	}, th.AnyMessage())
 }
 
-func AdvertiseGit(bh *th.BotHandler, db *sql.DB) {
+func AdvertiseWiki(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		bot := ctx.Bot()
@@ -291,9 +291,9 @@ func AdvertiseGit(bh *th.BotHandler, db *sql.DB) {
 		if chat == nil {
 			return nil
 		}
-		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на звездочет](https://github.com/voskhod-1/starsresearch)"})
+		bot.SendMessage(ctx, &telego.SendMessageParams{ReplyParameters: &telego.ReplyParameters{MessageID: update.Message.MessageID}, LinkPreviewOptions: &telego.LinkPreviewOptions{IsDisabled: true}, ChatID: chatID, ParseMode: telego.ModeMarkdownV2, DisableNotification: true, Text: "[Ссылка на звездочет](https://star.moodrow.ru)"})
 		return nil
-	}, th.Or(th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Зз][Вв][ЕеЁё][Зз][Дд][Оо][Чч][ЕеЁё][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Г][Ии][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Кк][Оо][Сс][Мм][Оо](?:\s|[.,!?]|$)`))))
+	}, th.Or(th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Зз][Вв][ЕеЁё][Зз][Дд][Оо][Чч][ЕеЁё][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Г][Ии][Тт](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Кк][Оо][Сс][Мм][Оо](?:\s|[.,!?]|$)`)), th.TextMatches(regexp.MustCompile(`(?:^|\s|[.,!?])[Вв][Ии][Кк][Ии](?:\s|[.,!?]|$)`))))
 }
 
 func AdvertiseTelega(bh *th.BotHandler, db *sql.DB) {

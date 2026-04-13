@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/mymmrac/telego"
+	"log"
 	"slices"
 	"strings"
 )
@@ -38,14 +39,18 @@ func isAdmin(userId int64, bot *telego.Bot, id telego.ChatID) bool {
 	return false
 }
 
-func getChatByID(chatID telego.ChatID, db *sql.DB, bot *telego.Bot) *Chat {
-	ctx := context.Background()
+func getChatByID(chatID telego.ChatID, db *sql.DB, update telego.Update) *Chat {
 	if !fromChat(chatID) {
 		return nil
 	}
 	chat := read(chatID.ID, db)
 	if chat == nil {
-		bot.SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+		//bot.SendMessage(ctx, &telego.SendMessageParams{ChatID: chatID, Text: "Сначала проинициализируйте чат!"})
+		chat = CreateChat(chatID.ID, update.Message.Chat.Title)
+		err := write(chat, db)
+		if err != nil {
+			log.Printf("Ошибка записи чата в БД: %v", err)
+		}
 	}
 	return chat
 }

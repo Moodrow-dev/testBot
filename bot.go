@@ -30,7 +30,7 @@ var userCmds = []telego.BotCommand{
 }
 
 func CreateBotAndPoll() (*telego.Bot, *th.BotHandler, error) {
-	err := godotenv.Load("token.env")
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -168,7 +168,7 @@ func ChangeTitle(bh *th.BotHandler, db *sql.DB) {
 		if !isAdmin(fromID, ctx.Bot(), chatID) {
 			return nil
 		}
-		chat := getChatByID(chatID, db, ctx.Bot())
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
@@ -194,7 +194,7 @@ func Ping(bh *th.BotHandler, db *sql.DB) {
 			pingMsg = update.Message.Text
 		}
 		chatID := update.Message.Chat.ChatID()
-		chat := getChatByID(chatID, db, ctx.Bot())
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
@@ -215,7 +215,7 @@ func Tolstobrow(bh *th.BotHandler, db *sql.DB) {
 		if !isAdmin(update.Message.From.ID, ctx.Bot(), chatID) {
 			return nil
 		}
-		chat := getChatByID(chatID, db, ctx.Bot())
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
@@ -237,23 +237,23 @@ func Tolstobrow(bh *th.BotHandler, db *sql.DB) {
 func AddNewPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		chat := getChatByID(chatID, db, ctx.Bot())
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
 
 		if len(update.Message.NewChatMembers) == 0 {
 			return nil
-		} else {
-			newMembers := update.Message.NewChatMembers
-			for _, newMember := range newMembers {
-				if !newMember.IsBot {
-					chat.Users = append(chat.Users, "@"+newMember.Username)
-					write(chat, db)
-					ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Новый юзер добавлен"})
-				}
+		}
+		newMembers := update.Message.NewChatMembers
+		for _, newMember := range newMembers {
+			if !newMember.IsBot {
+				chat.Users = append(chat.Users, "@"+newMember.Username)
+				write(chat, db)
+				ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Новый юзер добавлен"})
 			}
 		}
+
 		return nil
 	}, th.AnyMessage())
 }
@@ -261,24 +261,21 @@ func AddNewPeople(bh *th.BotHandler, db *sql.DB) {
 func DelLeftPeople(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
-		chat := getChatByID(chatID, db, ctx.Bot())
-		bot := ctx.Bot()
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
-		chat = getChatByID(chatID, db, bot)
 		if update.Message.LeftChatMember == nil {
 			return nil
-		} else {
-			if update.Message.LeftChatMember.IsBot {
-				return nil
-			}
-			username := "@" + update.Message.LeftChatMember.Username
-			leftUserIndex := slices.Index(chat.Users, username)
-			chat.Users = slices.Delete(chat.Users, leftUserIndex, leftUserIndex+1)
-			ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Старый юзер удален"})
-			write(chat, db)
 		}
+		if update.Message.LeftChatMember.IsBot {
+			return nil
+		}
+		username := "@" + update.Message.LeftChatMember.Username
+		leftUserIndex := slices.Index(chat.Users, username)
+		chat.Users = slices.Delete(chat.Users, leftUserIndex, leftUserIndex+1)
+		ctx.Bot().SendMessage(ctx, &telego.SendMessageParams{DisableNotification: true, ChatID: chatID, Text: "Старый юзер удален"})
+		write(chat, db)
 		return nil
 	}, th.AnyMessage())
 }
@@ -287,7 +284,7 @@ func AdvertiseWiki(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		bot := ctx.Bot()
-		chat := getChatByID(chatID, db, bot)
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
@@ -300,7 +297,7 @@ func AdvertiseTelega(bh *th.BotHandler, db *sql.DB) {
 	bh.Handle(func(ctx *th.Context, update telego.Update) error {
 		chatID := update.Message.Chat.ChatID()
 		bot := ctx.Bot()
-		chat := getChatByID(chatID, db, bot)
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}
@@ -315,7 +312,7 @@ func SetMainThread(bh *th.BotHandler, db *sql.DB) {
 		if !isAdmin(update.Message.From.ID, ctx.Bot(), chatID) {
 			return nil
 		}
-		chat := getChatByID(chatID, db, ctx.Bot())
+		chat := getChatByID(chatID, db, update)
 		if chat == nil {
 			return nil
 		}

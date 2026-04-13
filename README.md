@@ -92,7 +92,7 @@ WantedBy=multi-user.target
 ```
 
 ## 📬 Контакты   
-Telegram: @MoodrowDev
+Telegram: @moodroow
 
 ### Особенности оформления:
 1. **Четкое разделение** команд для админов и пользователей

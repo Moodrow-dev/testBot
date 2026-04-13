@@ -30,19 +30,30 @@ var userCmds = []telego.BotCommand{
 }
 
 func CreateBotAndPoll() (*telego.Bot, *th.BotHandler, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	// Пытаемся загрузить .env, но не падаем если его нет
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+		// НЕ используем log.Fatal()
 	}
-	bot, err := telego.NewBot(os.Getenv("BOT_TOKEN"), telego.WithDefaultDebugLogger())
+
+	// Проверяем наличие токена
+	token := os.Getenv("BOT_TOKEN")
+	if token == "" {
+		log.Fatal("BOT_TOKEN environment variable is not set")
+	}
+
+	bot, err := telego.NewBot(token, telego.WithDefaultDebugLogger())
 	if err != nil {
 		log.Fatal(err)
 		return nil, nil, err
 	}
+
 	upd, err := bot.UpdatesViaLongPolling(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
+		return nil, nil, err
 	}
+
 	bh, _ := th.NewBotHandler(bot, upd)
 	return bot, bh, nil
 }
